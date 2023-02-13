@@ -6,7 +6,7 @@ import mysql
 
 mydb = mysql.connector.connect(host="localhost",
                                    user="root",
-                                   password="",
+                                   password="12345678",
                                    database="mydb")
 
 
@@ -32,47 +32,46 @@ class Main(tk.Frame):
                                     compound=tk.TOP)
         btn_edit_dialog.pack(side=tk.LEFT)
 
-        btn_delete_dialog = tk.Button( text="Удалить",
+        btn_delete_dialog = tk.Button(toolbar, text="Удалить",
                                     command=self.delete_records, bg='#d7d8e0', bd=0,
                                     compound=tk.TOP)
         btn_delete_dialog.pack(side=tk.LEFT)
 
-        self.tree = ttk.Treeview(self, column=("id","name", "phone"), height=15, show='headings')
-        self.tree.column("id", width=30, anchor=tk.CENTER)
-        self.tree.column("name", width=365, anchor=tk.CENTER)
-        self.tree.column("surname", width=150, anchor=tk.CENTER)
-        self.tree.column("thirdname", width=30, anchor=tk.CENTER)
-        self.tree.column("class", width=365, anchor=tk.CENTER)
-        self.tree.column("letter", width=150, anchor=tk.CENTER)
+        self.tree = ttk.Treeview(self, column=("id","name", "surname", "thirdname", "number", "letter"), height=15, show='headings')
+        self.tree.column("id", width=95, anchor=tk.CENTER)
+        self.tree.column("name", width=95, anchor=tk.CENTER)
+        self.tree.column("surname", width=95, anchor=tk.CENTER)
+        self.tree.column("thirdname", width=95, anchor=tk.CENTER)
+        self.tree.column("number", width=95, anchor=tk.CENTER)
+        self.tree.column("letter", width=95, anchor=tk.CENTER)
 
 
         self.tree.heading("id", text='id')
         self.tree.heading("name", text='Имя')
         self.tree.heading("surname", text='Фамилия')
-        self.tree.heading("id", text='id')
-        self.tree.heading("name", text='Имя')
-        self.tree.heading("surname", text='Фамилия')
+        self.tree.heading("thirdname", text='Отчество')
+        self.tree.heading("number", text='Класс')
+        self.tree.heading("letter", text='Буква')
 
 
         self.tree.pack()
 
-    def records(self, name, phone):
-        self.db.insert_data(name,  phone)
+    def records(self, name, surname, thirdname, number, letter):
+        self.db.insert_data(name, surname, thirdname, number, letter)
         self.view_records()
 
-    def update_records(self, name,  phone):
-        self.db.c.execute('''UPDATE `users` SET `name` = %s, `phone` = %s WHERE (`id` = %s);''',( name, phone, self.tree.set(
+    def update_records(self, name, surname, thirdname, number, letter):
+        self.db.c.execute('''UPDATE `student` SET `name` = %s, `surname` = %s, `thirdname` = %s, `number` = %s, `letter` = %s WHERE (`id` = %s);''',( name, surname, thirdname, number, letter, self.tree.set(
                                                                                                                     self.tree.selection()[0],'#1')))
         self.view_records()
 
     def delete_records(self):
-
         for selection_item in self.tree.selection():
-            self.db.c.execute('''DELETE FROM `users` WHERE (`id` = %s);''', (self.tree.set(selection_item,'#1'),))
+            self.db.c.execute('''DELETE FROM `student` WHERE (`id` = %s);''', (self.tree.set(selection_item,'#1'),))
         self.view_records()
 
     def view_records(self):
-        self.db.c.execute('''SELECT * FROM users;''')
+        self.db.c.execute('''SELECT * FROM student;''')
         [self.tree.delete(i) for i in self.tree.get_children()]
         [self.tree.insert('', 'end', values=row) for row in self.db.c.fetchall()]
 
@@ -97,24 +96,41 @@ class Child(tk.Toplevel):
         self.geometry('400x220+400+300')
         self.resizable(False, False)
 
-        label_description = tk.Label(self, text='имя')
-        label_description.place(x=50, y=50)
-        label_sum = tk.Label(self, text='телефон')
-        label_sum.place(x=50, y=110)
+        label_name = tk.Label(self, text='имя')
+        label_name.place(x=50, y=50)
+        label_surname = tk.Label(self, text='фамилия')
+        label_surname.place(x=50, y=75)
+        label_thirdname = tk.Label(self, text='отчество')
+        label_thirdname.place(x=50, y=100)
+        label_number = tk.Label(self, text='класс')
+        label_number.place(x=50, y=125)
+        label_letter = tk.Label(self, text='буква')
+        label_letter.place(x=50, y=150)
 
-        self.entry_description = ttk.Entry(self)
-        self.entry_description.place(x=200, y=50)
 
-        self.entry_money = ttk.Entry(self)
-        self.entry_money.place(x=200, y=110)
+        self.entry_name = ttk.Entry(self)
+        self.entry_name.place(x=200, y=50)
 
-        btn_cancel = ttk.Button(self, text='x', command=self.destroy)
-        btn_cancel.place(x=300, y=170)
+        self.entry_surname = ttk.Entry(self)
+        self.entry_surname.place(x=200, y=75)
 
-        self.btn_ok = ttk.Button(self, text='добавить')
-        self.btn_ok.place(x=220, y=170)
-        self.btn_ok.bind('<Button-1>', lambda event: self.view.records(self.entry_description.get(),
-                                                                  self.entry_money.get()))
+        self.entry_thirdname = ttk.Entry(self)
+        self.entry_thirdname.place(x=200, y=100)
+
+        self.entry_number = ttk.Entry(self)
+        self.entry_number.place(x=200, y=125)
+
+        self.entry_letter = ttk.Entry(self)
+        self.entry_letter.place(x=200, y=150)
+
+        btn_cancel = ttk.Button(self, text='Отмена', command=self.destroy)
+        btn_cancel.place(x=300, y=185)
+
+        self.btn_ok = ttk.Button(self, text='Добавить')
+        self.btn_ok.place(x=220, y=185)
+        self.btn_ok.bind('<Button-1>', lambda event: self.view.records(self.entry_name.get(),self.entry_surname.get(),
+                                                                       self.entry_thirdname.get(), self.entry_number.get(),
+                                                                  self.entry_letter.get()))
 
         self.grab_set()
         self.focus_set()
@@ -130,9 +146,10 @@ class Update(Child):
     def init_edit(self):
         self.title('Редактировать')
         btn_edit = ttk.Button(self, text='Редактировать')
-        btn_edit.place(x=205, y=170)
-        btn_edit.bind('<Button-1>', lambda event: self.view.update_records(self.entry_description.get(),
-                                                                           self.entry_money.get()))
+        btn_edit.place(x=205, y=185)
+        btn_edit.bind('<Button-1>', lambda event: self.view.update_records(self.entry_name.get(),self.entry_surname.get(),
+                                                                       self.entry_thirdname.get(), self.entry_number.get(),
+                                                                  self.entry_letter.get()))
 
         self.grab_set()
         self.focus_set()
@@ -152,8 +169,8 @@ class DB:
 
 
 
-    def insert_data(self, name, phone):
-        self.c.execute('''INSERT INTO `users`(name, phone) VALUES (%s, %s);''',(name, phone))
+    def insert_data(self, name, surname, thirdname, number, letter):
+        self.c.execute('''INSERT INTO `student`(`name`, `surname`, `thirdname`, `number`, `letter`) VALUES (%s, %s, %s, %s, %s);''',(name, surname, thirdname, number, letter))
         self.db.commit()
 
 
